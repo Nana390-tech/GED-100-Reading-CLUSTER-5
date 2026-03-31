@@ -1,0 +1,705 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GED 100 – Super Reader Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--pur:#6c3fc5;--pink:#e040a0;--gold:#f5c518;--g:linear-gradient(135deg,#6c3fc5,#e040a0);--light:#faf7ff;--txt:#2d1b5e}
+body{font-family:system-ui,sans-serif;background:#f0eaff;min-height:100vh}
+#welcome{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--g);padding:20px}
+.wcard{background:#fff;border-radius:20px;padding:40px;max-width:480px;width:100%;text-align:center;box-shadow:0 10px 40px #0004}
+.wcard h1{font-size:1.9em;color:var(--pur);margin:10px 0 6px}
+.wcard p{color:#666;line-height:1.7;margin-bottom:20px}
+.wcard input{width:100%;padding:12px 16px;border:2px solid #ddd;border-radius:10px;font-size:1em;margin-bottom:16px;outline:none;transition:.2s}
+.wcard input:focus{border-color:var(--pur)}
+.btn{padding:12px 26px;border:none;border-radius:10px;font-size:1em;cursor:pointer;font-weight:700;transition:.1s}
+.btn:active{transform:scale(.97)}
+.btn-main{background:var(--g);color:#fff}
+.btn-ok{background:#4caf50;color:#fff}
+.btn-retry{background:#ff7043;color:#fff}
+.btn-gold{background:linear-gradient(135deg,#f5c518,#ff9800);color:#fff;font-size:1.1em;padding:14px 32px}
+#app{min-height:100vh;background:#f0eaff;padding-bottom:40px}
+.header{background:var(--g);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px #0002}
+.header h2{color:#fff;font-size:.95em}
+.header .nm{color:#ffffffcc;font-size:.85em}
+/* badge bar */
+.badgebar{background:#fff;border-bottom:2px solid #e0d8f5;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badgebar .blabel{font-size:.78em;font-weight:700;color:var(--pur);white-space:nowrap}
+.badge-slot{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:62px}
+.badge-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4em;transition:.3s;border:2px solid #e0d8f5;background:#f5f5f5;filter:grayscale(1);opacity:.4}
+.badge-icon.earned{filter:none;opacity:1;border-color:var(--gold);background:#fffde7;box-shadow:0 0 8px #f5c51880;animation:pop .4s ease}
+.badge-name{font-size:.62em;color:#aaa;text-align:center;font-weight:600}
+.badge-name.earned{color:var(--pur)}
+@keyframes pop{0%{transform:scale(.5)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.cert-hint{margin-left:auto;font-size:.78em;color:#bbb;font-style:italic}
+/* save bar */
+.savebar{background:#faf7ff;border-bottom:2px solid #e0d8f5;padding:7px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.savebar span{font-size:.78em;color:var(--pur);font-weight:700}
+.btn-save{padding:6px 14px;font-size:.78em;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:.1s}
+.btn-save:active{transform:scale(.97)}
+.btn-dl{background:var(--g);color:#fff}
+.btn-ul{background:#fff;color:var(--pur);border:2px solid var(--pur)!important}
+.save-msg{font-size:.75em;font-style:italic;color:#4caf50;margin-left:4px}
+/* tabs */
+.tabbar{display:flex;gap:3px;padding:10px 16px 0;background:#fff;border-bottom:2px solid #e0d8f5;overflow-x:auto}
+.tab{padding:8px 13px;border-radius:8px 8px 0 0;cursor:pointer;font-size:.82em;font-weight:700;white-space:nowrap;background:#f0eaff;color:var(--pur);transition:.15s;border:2px solid transparent}
+.tab.active{background:var(--pur);color:#fff}
+.tab.locked{background:#ebebeb;color:#bbb;cursor:not-allowed}
+.tab.done{background:#d4edda;color:#2e7d32;border-color:#a5d6a7}
+.panel{display:none;padding:14px 16px;max-width:1200px;margin:0 auto}
+.panel.on{display:block}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.split{grid-template-columns:1fr}}
+.pbox{background:#fff;border-radius:12px;padding:18px;height:520px;overflow-y:auto;line-height:1.85;font-size:.88em;color:var(--txt);box-shadow:0 2px 8px #0001}
+.pbox p{margin-bottom:10px}
+.pn{font-weight:800;color:var(--pur)}
+.abox{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px #0001;overflow-y:auto;max-height:520px}
+.slabel{display:inline-block;background:#f0eaff;color:var(--pur);padding:4px 12px;border-radius:20px;font-size:.78em;font-weight:700;margin-bottom:12px}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:14px}
+.vc{border:2px solid #e0d8f5;border-radius:10px;padding:11px;cursor:pointer;transition:.2s;min-height:78px}
+.vc:hover{border-color:var(--pur);background:#faf7ff}
+.vc .fr{text-align:center}
+.vc .wd{font-size:1.05em;font-weight:800;color:var(--pur)}
+.vc .ar{font-size:.82em;color:var(--pink);direction:rtl;margin-top:4px;font-weight:600}
+.vc .hint{font-size:.7em;color:#ccc;margin-top:5px}
+.vc .bk{display:none;font-size:.78em;line-height:1.55;color:#444}
+.vc.fl .fr{display:none}
+.vc.fl .bk{display:block}
+.vc.fl{background:#faf7ff;border-color:var(--pur)}
+.qb{margin-bottom:18px}
+.qt{font-size:.7em;color:#fff;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:5px}
+.qt.skim{background:#1976d2}.qt.scan{background:#388e3c}.qt.ref{background:#7b1fa2}.qt.inf{background:#e65100}.qt.comp{background:#c2185b}
+.qtxt{font-size:.87em;color:var(--txt);font-weight:600;margin-bottom:7px;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:5px}
+.opt{padding:8px 11px;border:2px solid #e0d8f5;border-radius:8px;cursor:pointer;font-size:.83em;text-align:left;background:#fff;transition:.15s;width:100%}
+.opt:hover:not([disabled]){border-color:var(--pur);background:#f0eaff}
+.opt.sel{border-color:var(--pur);background:#ede7ff}
+.opt.cor{border-color:#4caf50;background:#e8f5e9;color:#1b5e20;font-weight:700}
+.opt.wrg{border-color:#f44336;background:#ffebee;color:#b71c1c;text-decoration:line-through}
+.opt[disabled]{cursor:default}
+.sbox{text-align:center;padding:18px;border-radius:12px;margin-top:14px}
+.sbox.pass{background:#e8f5e9;border:2px solid #4caf50}
+.sbox.fail{background:#fff8e1;border:2px solid #ff9800}
+.snum{font-size:2.6em;font-weight:900}
+.sbox.pass .snum{color:#2e7d32}
+.sbox.fail .snum{color:#e65100}
+.prog{background:#e0d8f5;border-radius:10px;height:7px;margin-bottom:14px}
+.pfill{height:100%;border-radius:10px;background:var(--g);transition:.5s}
+.ptop{display:flex;align-items:center;gap:8px;padding:6px 0 12px}
+/* done page */
+.done-page{text-align:center;padding:40px 20px}
+.badge-big{font-size:5em;animation:pop .5s ease}
+.all-done-bar{background:linear-gradient(135deg,#fffde7,#fff8e1);border:2px solid var(--gold);border-radius:16px;padding:24px;margin-top:20px;text-align:center}
+/* cert */
+#cert{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--g);padding:20px}
+.ccard{background:#fff;border-radius:24px;padding:44px;max-width:600px;width:100%;text-align:center;box-shadow:0 12px 50px #0005;border:4px solid var(--gold)}
+.ccard h1{font-size:1.6em;color:var(--pur)}
+.cname{font-size:2.2em;font-weight:900;color:var(--pink);margin:16px 0}
+footer{text-align:center;padding:18px;color:#b0a0cc;font-size:.73em}
+@media print{
+  #app,#welcome{display:none!important}
+  #cert{min-height:auto;background:none!important;padding:0}
+  .ccard{box-shadow:none;border:3px solid var(--gold);max-width:100%;margin:20px}
+}
+</style>
+</head>
+<body>
+
+<div id="welcome">
+  <div class="wcard">
+    <div style="font-size:3.2em">📚</div>
+    <h1>GED 100 Reading Hub</h1>
+    <p>Read <strong>5 exciting passages</strong>, learn vocabulary, and answer questions.<br><br>
+    Earn a <strong>badge 🏅</strong> for each reading you complete.<br>
+    Collect all 5 badges to unlock your<br><strong>🏆 Super Reader Certificate!</strong></p>
+    <input type="text" id="nm" placeholder="✏️ Enter your full name..." maxlength="60">
+    <button class="btn btn-main" onclick="startApp()" style="width:100%">Let's Start! →</button>
+    <p style="font-size:.75em;color:#bbb;margin-top:16px">GED 100 – Develop English Language Skills | HCT</p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="header">
+    <h2>📚 GED 100 – Super Reader Hub</h2>
+    <span class="nm" id="nmD"></span>
+  </div>
+  <div class="badgebar" id="badgebar"></div>
+  <div class="savebar">
+    <span>💾 Progress:</span>
+    <button class="btn-save btn-dl" onclick="saveProgress()">⬇️ Save to File</button>
+    <label class="btn-save btn-ul" style="cursor:pointer">📂 Load from File<input type="file" accept=".json" onchange="loadProgress(event)" style="display:none"></label>
+    <span class="save-msg" id="saveMsg"></span>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <div id="panels"></div>
+</div>
+
+<div id="cert" hidden>
+  <div class="ccard">
+    <div style="font-size:3.5em">🏆</div>
+    <h1>Certificate of Achievement</h1>
+    <p style="color:#999;font-size:.9em;margin-top:8px">This certifies that</p>
+    <div class="cname" id="cname"></div>
+    <p style="color:var(--pur);font-weight:700;font-size:1.05em">has successfully completed all 5 readings in the</p>
+    <p style="font-weight:800;color:var(--txt);font-size:1.1em;margin:6px 0">GED 100 Super Reader Hub</p>
+    <div style="font-size:2em;margin:12px 0" id="certBadges"></div>
+    <div style="font-size:2.2em;margin:10px 0">⭐⭐⭐⭐⭐</div>
+    <p style="color:var(--pink);font-weight:800;font-size:1.3em">🌟 Outstanding Super Reader! 🌟</p>
+    <p style="color:#777;font-size:.85em;margin-top:10px;line-height:1.7">You have demonstrated excellent reading, vocabulary, and comprehension skills across five academic topics.</p>
+    <div style="font-size:2em;letter-spacing:6px;margin:16px 0">📖✨🎓💫🚀</div>
+    <p style="color:#bbb;font-size:.8em" id="cdate"></p>
+    <button class="btn btn-main" onclick="window.print()" style="margin-top:16px">🖨️ Print Certificate</button>
+    <p style="color:#ddd;font-size:.72em;margin-top:18px">GED 100 – Develop English Language Skills | Higher Colleges of Technology<br>Designed by: Nazila Motahari</p>
+  </div>
+</div>
+
+<script>
+const BADGES=[
+  {emoji:"🔬",name:"Food Scientist"},
+  {emoji:"🌊",name:"Eco Warrior"},
+  {emoji:"💡",name:"Tech Explorer"},
+  {emoji:"🏅",name:"Health Champion"},
+  {emoji:"🚀",name:"Space Explorer"}
+];
+
+const R=[
+{
+  title:"Food Science",emoji:"🍎",
+  paras:[
+    "[1] From breakfast to dinner, our food gives us energy and keeps us healthy. Have you ever thought about the science behind your favourite foods? Why does the food we love taste so good and keep us strong? Food science is an amazing field that explores what we eat, how we make it, and what effect it has on our minds and bodies.",
+    "[2] Think of food science as a detective story about what happens to your food, from the farm to your plate. It is a mix of chemistry, biology, and even a little bit of physics. Scientists in this field study how food grows, how we cook it, and how it develops our bodies. This research helps scientists explain everything about food, from what gives flavour to tomatoes to how a small seed becomes a juicy fruit.",
+    "[3] Chemistry helps us understand what makes food taste good and why certain foods have special flavours. It allows scientists to discover what makes a tomato sour or why chocolate melts in your mouth. Chemistry also helps us understand what happens when we cook food, such as when raw rice becomes soft or when baking flour becomes a delicious cake. Biology is another big part of food science. Biology studies the plants and animals used in producing food. Biologists work with other scientists to make sure food is safe to eat and stays fresh for longer.",
+    "[4] The field of food science is always changing and improving to make food healthy, tasty, and friendly to the environment. These changes create many jobs in food science, from using technology to making farming smarter and food safer. Whether you want to work on a farm, in a lab, or in a kitchen, there is a job for you in food science.",
+    "[5] Professionals like pharmacy technicians, healthcare workers, and life science technicians have important jobs in food science. Pharmacy technicians study the chemicals used in food or medicines. Healthcare workers make sure food is handled and stored safely. They teach us about healthy eating habits and safe food handling. Medical assistants work with doctors and nurses to help patients make healthy food choices. Life science technicians study the effect plants and animals have on how food is grown.",
+    "[6] Nutrition is all about vitamins, minerals, proteins, and fats that keep you healthy. Medical assistants help by checking how much of the good stuff is in your snacks and meals. Have you ever wondered what the numbers and words on food labels mean? Food labels are like a map showing what is inside your food. They show things like calories, ingredients, and allergens.",
+    "[7] You may have also seen 'best before' dates on food packs. This shows whether the food is fresh and safe. Food scientists work hard to make sure your food will not make you sick. They study how to prevent germs from growing and how to store food so it stays fresh longer.",
+    "[8] However, food science has its challenges. Food shortage is a real problem for many people around the world. Scientists are studying ways to grow more food without damaging the environment. They are making sure everyone has enough to eat and are creating ways to reduce food waste.",
+    "[9] The future of food science is exciting! Scientists are considering inventing new foods that are good for you and the environment. Maybe one day you will be eating a tasty snack made from items grown in a lab. So, whether you are biting into a crisp apple or enjoying pizza with cheese, remember that all that great taste is thanks to science and research."
+  ],
+  vocab:[
+    {w:"science",ar:"العلم",def:"The study of the natural world using experiments and facts.",ex:"Food science helps us understand what we eat."},
+    {w:"chemistry",ar:"الكيمياء",def:"The study of what things are made of and how they change.",ex:"Chemistry explains why chocolate melts in your mouth."},
+    {w:"biology",ar:"الأحياء",def:"The study of living things such as plants and animals.",ex:"Biology helps scientists understand how food grows."},
+    {w:"nutrition",ar:"التغذية",def:"The study of food and how it keeps our bodies healthy.",ex:"Good nutrition means eating enough vitamins and proteins."},
+    {w:"ingredients",ar:"المكونات",def:"The items used to make a food or dish.",ex:"The food label lists all the ingredients in your snack."},
+    {w:"allergens",ar:"مسببات الحساسية",def:"Things in food that can make some people feel sick.",ex:"Nuts are allergens for people who are allergic to them."},
+    {w:"fresh",ar:"طازج",def:"Not old or bad; good and safe to eat.",ex:"The 'best before' date tells you if food is still fresh."},
+    {w:"shortage",ar:"نقص",def:"When there is not enough of something for everyone.",ex:"A food shortage means people do not have enough to eat."}
+  ],
+  vq:[
+    {s:"Scientists use _______ to understand what makes chocolate melt in your mouth.",a:"chemistry",o:["chemistry","biology","nutrition","physics"]},
+    {s:"_______ studies plants and animals that are used in producing food.",a:"Biology",o:["Chemistry","Biology","Physics","Nutrition"]},
+    {s:"Good _______ means eating enough vitamins, minerals, and proteins every day.",a:"nutrition",o:["nutrition","science","biology","shortage"]},
+    {s:"The food label lists all the _______, so you know what is in your food.",a:"ingredients",o:["allergens","ingredients","calories","labels"]},
+    {s:"Nuts are _______ for people who react badly to them.",a:"allergens",o:["fresh","ingredients","allergens","chemicals"]},
+    {s:"When there is a food _______, people do not have enough to eat.",a:"shortage",o:["cycle","shortage","label","nutrition"]}
+  ],
+  cq:[
+    {t:"Skimming",q:"What is the main topic of this reading?",o:["How to cook food","The science of food and how it affects us","Jobs in hospitals","How to grow vegetables"],a:1},
+    {t:"Scanning",q:"According to paragraph [3], what happens to raw rice when it is cooked?",o:["It becomes sour","It melts","It becomes soft","It becomes harder"],a:2},
+    {t:"Referencing",q:"In paragraph [2], 'It is a mix of chemistry, biology, and even a little bit of physics.' What does 'It' refer to?",o:["A detective story","A recipe","Food science","A laboratory"],a:2},
+    {t:"Comprehension",q:"According to paragraph [5], what do pharmacy technicians study?",o:["Plants and animals","How to store food safely","Chemicals used in food or medicines","Patient meal plans"],a:2},
+    {t:"Scanning",q:"According to paragraph [6], what three things do food labels show?",o:["Cooking instructions, price, and weight","Name, factory, and country","Calories, ingredients, and allergens","Colour, smell, and taste"],a:2},
+    {t:"Referencing",q:"In paragraph [8], 'They are making sure everyone has enough to eat.' Who does 'They' refer to?",o:["Pharmacy technicians","Healthcare workers","Medical assistants","Scientists"],a:3},
+    {t:"Inferencing",q:"Why do biologists cool and freeze food in refrigerators?",o:["To make food taste better","To keep food safe and fresh for longer","To study the chemicals in food","To make food easier to cook"],a:1},
+    {t:"Comprehension",q:"What challenge in food science is mentioned in paragraph [8]?",o:["Too many food jobs","Expensive ingredients","Food shortage","Unhealthy recipes"],a:2},
+    {t:"Inferencing",q:"What can we understand about the future of food from paragraph [9]?",o:["People will stop eating vegetables","Scientists may create new foods grown in labs","Restaurants will close","Food science will become less important"],a:1},
+    {t:"Scanning",q:"According to paragraph [2], food science is a mix of which three subjects?",o:["History, art, and music","Maths, English, and geography","Chemistry, biology, and physics","Biology, cooking, and farming"],a:2}
+  ]
+},
+{
+  title:"Water & Environment",emoji:"💧",
+  paras:[
+    "[1] Water is one of the most important things on Earth. Every living thing needs water to survive. Without water, plants cannot grow, animals cannot live, and humans cannot be healthy. Water covers about 71% of the Earth, but most of it is salty ocean water that we cannot drink.",
+    "[2] The water we drink is called fresh water. Fresh water comes from rivers, lakes, and underground sources. However, only a small amount of Earth's water is fresh water. This makes fresh water very precious and important to protect.",
+    "[3] Water moves around the Earth in a process called the water cycle. First, the sun heats water in oceans and rivers. The water turns into vapour and rises into the sky. Then it forms clouds. When the clouds become heavy, the water falls back to Earth as rain or snow.",
+    "[4] The water cycle is important because it cleans and recycles water. Rain fills rivers and lakes, and water soaks into the ground. This underground water is called groundwater. Many people around the world use groundwater for drinking and farming.",
+    "[5] However, the environment is changing. Climate change is making some parts of the world drier. In dry areas, rivers and lakes are getting smaller. This means that many people do not have enough clean water to drink or use.",
+    "[6] Pollution is another big problem for water. Factories, farms, and cities sometimes put harmful chemicals into rivers and lakes. When water is polluted, it is not safe for people, animals, or plants. Cleaning polluted water takes a long time and costs a lot of money.",
+    "[7] People around the world are working hard to protect water. Scientists are finding new ways to clean dirty water and make salty ocean water safe to drink. This process is called desalination. Countries like the UAE use desalination to get fresh water for their people.",
+    "[8] You can also help protect water every day. Turn off the tap when you brush your teeth. Take shorter showers. Fix leaking pipes. These small actions can save a lot of water over time.",
+    "[9] Water is life. When we protect water, we protect the future of our planet. Scientists, governments, and everyday people all have a role to play in making sure everyone has clean, safe water now and in the future."
+  ],
+  vocab:[
+    {w:"survive",ar:"ينجو / يعيش",def:"To stay alive, especially in a difficult situation.",ex:"All living things need water to survive."},
+    {w:"precious",ar:"ثمين",def:"Very important, valuable, and not to be wasted.",ex:"Fresh water is precious because there is very little of it."},
+    {w:"cycle",ar:"دورة",def:"A process that repeats again and again in the same order.",ex:"The water cycle moves water from the ocean to the sky and back."},
+    {w:"vapour",ar:"بخار",def:"Water in the form of a gas that rises into the air when heated.",ex:"When the sun heats water, it turns into vapour."},
+    {w:"pollution",ar:"تلوث",def:"Harmful chemicals or waste that damage water, air, or land.",ex:"Pollution from factories makes rivers unsafe to drink from."},
+    {w:"desalination",ar:"تحلية المياه",def:"The process of removing salt from seawater to make it safe to drink.",ex:"The UAE uses desalination to provide fresh water for its people."},
+    {w:"groundwater",ar:"المياه الجوفية",def:"Water stored under the ground.",ex:"Many farmers use groundwater to water their crops."},
+    {w:"climate change",ar:"تغير المناخ",def:"Long-term changes in Earth's temperature and weather patterns.",ex:"Climate change is making some areas of the world much drier."}
+  ],
+  vq:[
+    {s:"All living things need water to _______. Without it, they cannot stay alive.",a:"survive",o:["survive","cycle","pollute","evaporate"]},
+    {s:"Fresh water is very _______ because only a small amount of it exists on Earth.",a:"precious",o:["polluted","precious","frozen","salty"]},
+    {s:"The water _______ moves water from the ocean to the sky and back to Earth.",a:"cycle",o:["cycle","shortage","vapour","divide"]},
+    {s:"When the sun heats water, it turns into _______ and rises into the sky.",a:"vapour",o:["ice","vapour","clouds","pollution"]},
+    {s:"Factories putting harmful chemicals into rivers causes water _______.",a:"pollution",o:["pollution","desalination","groundwater","survival"]},
+    {s:"The UAE uses _______ to turn salty ocean water into fresh drinking water.",a:"desalination",o:["groundwater","the water cycle","desalination","pollution"]}
+  ],
+  cq:[
+    {t:"Skimming",q:"What is the main idea of this reading?",o:["How rain falls from clouds","Why the ocean is salty","The importance of water and how to protect it","How to swim safely"],a:2},
+    {t:"Scanning",q:"According to paragraph [1], what percentage of the Earth is covered by water?",o:["51%","61%","71%","81%"],a:2},
+    {t:"Comprehension",q:"What is the water cycle?",o:["A type of water bottle","The process of cleaning dirty water","A machine that removes salt from water","The process where water moves from oceans to the sky and back to Earth"],a:3},
+    {t:"Referencing",q:"In paragraph [5], 'This means that many people do not have enough clean water.' What does 'This' refer to?",o:["The water cycle","Groundwater","Rivers and lakes getting smaller","The ocean"],a:2},
+    {t:"Scanning",q:"According to paragraph [7], which country is mentioned as using desalination?",o:["Egypt","Saudi Arabia","Jordan","The UAE"],a:3},
+    {t:"Inferencing",q:"Why is fresh water described as 'precious' in paragraph [2]?",o:["Because it is very cold","Because only a small amount of Earth's water is fresh","Because it comes from underground","Because it falls as snow"],a:1},
+    {t:"Comprehension",q:"According to paragraph [6], what causes water pollution?",o:["Too much rain","The water cycle","Factories, farms, and cities putting harmful chemicals into water","Groundwater rising to the surface"],a:2},
+    {t:"Referencing",q:"In paragraph [8], 'These small actions can save a lot of water.' What do 'These' refer to?",o:["Drinking more water and swimming","Turning off taps, shorter showers, and fixing leaks","Cleaning rivers and lakes","Building desalination plants"],a:1},
+    {t:"Inferencing",q:"What can we understand about desalination from paragraph [7]?",o:["It is a very old technology","It is only used in Europe","It is a solution to fresh water shortages","It makes water taste better"],a:2},
+    {t:"Comprehension",q:"According to paragraph [4], what is groundwater?",o:["Water that falls as rain","Water stored underground","Water in rivers and lakes","Water vapour in clouds"],a:1}
+  ]
+},
+{
+  title:"Technology in Education",emoji:"💻",
+  paras:[
+    "[1] Technology is changing the way we learn. In the past, students only had books and teachers in the classroom. Today, students can use computers, tablets, and smartphones to learn about almost anything, anywhere in the world.",
+    "[2] One of the biggest changes in education is the internet. The internet gives students access to millions of books, videos, and websites. If you have a question, you can find the answer in seconds. This makes learning faster and easier than ever before.",
+    "[3] Online learning is also becoming very popular. Students can take classes online from their homes. This is helpful for people who live far from schools or universities. It also helps students who have busy schedules or health problems that make it hard to attend a physical class.",
+    "[4] Educational apps and games make learning fun. Many students use apps to practise mathematics, languages, and science. These apps give students instant feedback. If you make a mistake, the app tells you immediately and helps you understand the correct answer.",
+    "[5] Technology also helps teachers. Teachers use digital tools to create interesting lessons with videos, pictures, and interactive activities. They can check students' work quickly using online systems. This gives teachers more time to help individual students who need extra support.",
+    "[6] However, technology in education has some challenges. Not every student has access to a computer or the internet at home. This is called the digital divide. It means that some students have more learning opportunities than others, which is not fair.",
+    "[7] Too much screen time is another concern. Spending too many hours looking at a screen can be bad for your eyes, your sleep, and your mental health. Experts say that students should take regular breaks from screens and spend time outdoors.",
+    "[8] Social media can also be a distraction. It is easy to stop studying and start looking at videos or messages. Students need to develop good habits to manage their time and stay focused on their studies.",
+    "[9] Despite these challenges, technology is making education better for millions of students around the world. The key is to use technology wisely. When students and teachers use technology in a smart and balanced way, it can be a powerful tool for learning and growth."
+  ],
+  vocab:[
+    {w:"technology",ar:"التكنولوجيا",def:"Tools and machines, especially computers, that help people.",ex:"Students use technology like tablets and smartphones to study."},
+    {w:"access",ar:"وصول",def:"The ability to use or get something.",ex:"Not every student has access to the internet at home."},
+    {w:"feedback",ar:"تغذية راجعة",def:"Information you receive about how well you did something.",ex:"The app gives instant feedback when you answer a question."},
+    {w:"digital divide",ar:"الفجوة الرقمية",def:"The gap between people who have technology and those who do not.",ex:"The digital divide means some students have fewer learning tools."},
+    {w:"distraction",ar:"إلهاء",def:"Something that takes your attention away from what you are doing.",ex:"Social media can be a distraction when you are studying."},
+    {w:"interactive",ar:"تفاعلي",def:"Allowing communication or activity between a person and a system.",ex:"Teachers create interactive lessons with videos and activities."},
+    {w:"screen time",ar:"وقت الشاشة",def:"Time spent looking at a phone, tablet, or computer.",ex:"Too much screen time can be bad for your eyes and sleep."},
+    {w:"opportunity",ar:"فرصة",def:"A chance to do or experience something good.",ex:"Online learning gives students an opportunity to study from home."}
+  ],
+  vq:[
+    {s:"Students use _______ like computers and tablets to help them study.",a:"technology",o:["technology","feedback","access","distraction"]},
+    {s:"Not every student has _______ to the internet at home.",a:"access",o:["feedback","access","screen time","opportunity"]},
+    {s:"The app gives you _______ immediately so you know if your answer is correct.",a:"feedback",o:["feedback","access","distraction","opportunity"]},
+    {s:"The _______ means some students have more learning tools than others.",a:"digital divide",o:["screen time","digital divide","distraction","opportunity"]},
+    {s:"Social media is often a _______ that stops students focusing on their work.",a:"distraction",o:["feedback","opportunity","distraction","screen time"]},
+    {s:"Studying abroad is a great _______ to improve your English and learn new skills.",a:"opportunity",o:["distraction","screen time","digital divide","opportunity"]}
+  ],
+  cq:[
+    {t:"Skimming",q:"What is this reading mainly about?",o:["How to use social media","The history of computers","How technology is changing education","Problems with the internet"],a:2},
+    {t:"Scanning",q:"According to paragraph [4], what kind of feedback do educational apps give?",o:["Written feedback at the end of the week","Feedback from other students","Instant feedback","Feedback only from the teacher"],a:2},
+    {t:"Referencing",q:"In paragraph [6], 'It means that some students have more learning opportunities than others.' What does 'It' refer to?",o:["The internet","The digital divide","Screen time","Social media"],a:1},
+    {t:"Inferencing",q:"Why would a student living far from a university benefit from online learning?",o:["Online classes are cheaper to make","Online learning removes the need to travel to attend classes","Students in villages are better with computers","Online classes are shorter"],a:1},
+    {t:"Comprehension",q:"According to paragraph [7], what problems can too much screen time cause?",o:["Poor writing and bad memory","Bad eyes, poor sleep, and mental health problems","Poor physical fitness and slow reading","Difficulty using computers"],a:1},
+    {t:"Referencing",q:"In paragraph [5], 'They can check students' work quickly using online systems.' Who does 'They' refer to?",o:["Students","App developers","Teachers","Scientists"],a:2},
+    {t:"Scanning",q:"According to paragraph [3], which students benefit most from online learning?",o:["Students who like art","Students living far from schools or with busy schedules","Students who have good computers","Students who want to be engineers"],a:1},
+    {t:"Inferencing",q:"What does the writer suggest students should do about social media?",o:["Stop using it completely","Use it only for studying","Manage their time and stay focused on studies","Check it during class"],a:2},
+    {t:"Comprehension",q:"What is the 'digital divide' according to paragraph [6]?",o:["The difference between phones and computers","When the internet is slow","The gap between students who have technology and those who do not","A type of computer programme"],a:2},
+    {t:"Skimming",q:"What is the writer's conclusion about technology in education?",o:["Technology is always harmful for students","Students should avoid technology","Technology is useful when used wisely","Technology is only good for teachers"],a:2}
+  ]
+},
+{
+  title:"Sports & Health",emoji:"⚽",
+  paras:[
+    "[1] Sport is one of the best things you can do for your body and your mind. Whether you play football with friends, swim in a pool, or walk in the park, being active makes you feel better and live longer. Sports are not just about winning – they are about being healthy and happy.",
+    "[2] When you exercise, your heart beats faster and your muscles get stronger. Regular exercise helps your body fight illness, keeps your weight healthy, and gives you more energy. Doctors around the world agree that exercise is one of the best medicines.",
+    "[3] Sport is also excellent for mental health. When you play sport, your brain releases chemicals called endorphins. Endorphins make you feel happy and reduce stress. This is why many people say they feel much better after a run or a gym session.",
+    "[4] Team sports have extra benefits. When you play on a team, you learn how to work with other people, communicate clearly, and support each other. These are important life skills that help you in school, work, and your personal life.",
+    "[5] Sport also teaches discipline and goal-setting. To become better at a sport, you must practise regularly and work hard. You learn to set goals and keep going even when it is difficult. Athletes often say that sport taught them to never give up.",
+    "[6] Children who play sport regularly do better at school. Exercise improves concentration and memory. Students who are active find it easier to sit, focus, and learn in class. Many schools include sport in the school day because of these benefits.",
+    "[7] However, it is important to play sport safely. Always warm up before exercise to prepare your muscles. Drink enough water to stay hydrated, especially in hot weather. Wear the right equipment to protect yourself from injury.",
+    "[8] Not everyone enjoys competitive sport. That is perfectly fine. There are many ways to be active without competition. Dancing, hiking, yoga, and cycling are all great ways to keep your body moving and your mind healthy.",
+    "[9] No matter what sport or activity you choose, the most important thing is to move your body regularly. Even 30 minutes of activity a day can make a big difference to your health. Start small, stay consistent, and enjoy the journey to a healthier life."
+  ],
+  vocab:[
+    {w:"exercise",ar:"تمرين",def:"Physical activity you do to keep your body fit and healthy.",ex:"Regular exercise helps your body fight illness and gives you energy."},
+    {w:"muscles",ar:"عضلات",def:"The parts of your body that contract to help you move.",ex:"Your muscles get stronger when you exercise regularly."},
+    {w:"endorphins",ar:"إندورفين",def:"Chemicals released by the brain that make you feel happy.",ex:"Exercise releases endorphins that reduce stress and improve your mood."},
+    {w:"discipline",ar:"انضباط",def:"The ability to control yourself and work hard to achieve your goals.",ex:"Sport teaches discipline – you must practise every day and never give up."},
+    {w:"hydrated",ar:"محافظ على الترطيب",def:"Having enough water in your body to stay healthy.",ex:"Drink water during sport to stay hydrated in hot weather."},
+    {w:"concentration",ar:"تركيز",def:"The ability to focus your attention fully on something.",ex:"Exercise improves concentration and helps students focus in class."},
+    {w:"competitive",ar:"تنافسي",def:"Related to competing or trying to be better than others.",ex:"Not everyone enjoys competitive sport, but there are many other ways to be active."},
+    {w:"consistent",ar:"منتظم / ثابت",def:"Doing something regularly without stopping.",ex:"Be consistent with your exercise – do it every day, not just once a week."}
+  ],
+  vq:[
+    {s:"Drink water during sport to stay _______, especially in hot weather.",a:"hydrated",o:["disciplined","hydrated","competitive","consistent"]},
+    {s:"When you exercise, your brain releases _______ that make you feel happy.",a:"endorphins",o:["muscles","endorphins","discipline","concentration"]},
+    {s:"Your _______ get stronger when you exercise regularly and lift weights.",a:"muscles",o:["endorphins","muscles","discipline","concentration"]},
+    {s:"Good _______ helps you focus on your studies without getting distracted.",a:"concentration",o:["muscles","hydration","concentration","competition"]},
+    {s:"Playing sport every day takes _______ – you must work hard and not give up.",a:"discipline",o:["consistency","endorphins","hydration","discipline"]},
+    {s:"It is important to be _______ with your exercise and do it every single day.",a:"consistent",o:["competitive","hydrated","consistent","disciplined"]}
+  ],
+  cq:[
+    {t:"Skimming",q:"What is the main message of this reading?",o:["Competitive sports are the most important","Exercise is good for your body and mind","You should become a professional athlete","Football is the best sport"],a:1},
+    {t:"Comprehension",q:"According to paragraph [3], what are endorphins?",o:["A type of exercise","Muscles in the body","Chemicals that make you feel happy","A sport for teams"],a:2},
+    {t:"Referencing",q:"In paragraph [4], 'They learn how to work with other people.' Who does 'They' refer to?",o:["Coaches","Doctors","Scientists","Team sport players"],a:3},
+    {t:"Scanning",q:"According to paragraph [7], what should you do before exercising?",o:["Run for 30 minutes","Warm up","Stretch for one hour","Eat a large meal"],a:1},
+    {t:"Inferencing",q:"Why do children who exercise do better at school, according to paragraph [6]?",o:["They sleep more","They have more friends","Exercise improves concentration and memory","They are happier with teachers"],a:2},
+    {t:"Comprehension",q:"According to paragraph [5], what does sport teach you?",o:["How to win every competition","How to become famous","Discipline and goal-setting","How to cook healthy food"],a:2},
+    {t:"Referencing",q:"In paragraph [9], 'enjoy the journey to a healthier life.' What does 'the journey' mean here?",o:["Travelling to a new country","Running a marathon","Joining a sports team","The process of becoming healthier over time"],a:3},
+    {t:"Inferencing",q:"What can we understand about non-competitive activities from paragraph [8]?",o:["They are not as good as team sports","They are only for older people","They can keep you healthy and active","They are not popular"],a:2},
+    {t:"Scanning",q:"According to paragraph [2], what does regular exercise do for your body?",o:["It makes you tired and weak","It helps fight illness, keeps weight healthy, and gives energy","It makes you feel stressed","It makes your muscles smaller"],a:1},
+    {t:"Comprehension",q:"According to paragraph [7], why is drinking water during sport important?",o:["To make your muscles bigger","To run faster","To stay hydrated, especially in hot weather","To reduce stress"],a:2}
+  ]
+},
+{
+  title:"Space Exploration",emoji:"🚀",
+  paras:[
+    "[1] Space is one of the greatest mysteries of the universe. For thousands of years, people looked at the stars and wondered what was out there. Today, thanks to science and technology, we know more about space than ever before. But there is still so much more to discover.",
+    "[2] Space exploration began in the 20th century. In 1957, the Soviet Union launched the first satellite, called Sputnik, into space. In 1969, American astronaut Neil Armstrong became the first human to walk on the Moon. These were incredible moments in human history.",
+    "[3] To explore space, scientists build powerful rockets and spacecraft. These machines travel millions of kilometres through empty space. Astronauts who travel to space must train for years. They learn how to live and work without gravity, how to fix equipment, and how to stay healthy in space.",
+    "[4] One of the most important places in space exploration is the International Space Station, or ISS. The ISS is a large laboratory that orbits Earth. Scientists from many different countries work there together. They carry out experiments that help us understand how humans can live in space for long periods.",
+    "[5] Space exploration helps us in daily life too. Many technologies we use today were first developed for space research. GPS systems, weather satellites, and even memory foam were all invented because of space science. Space research has brought many useful things to our everyday world.",
+    "[6] Scientists are especially interested in Mars. Mars is the fourth planet from the Sun and is sometimes called the Red Planet. Some scientists believe humans could one day live on Mars. Robots called rovers have already explored its surface and sent back amazing photos and data.",
+    "[7] However, space exploration is very expensive. Sending one rocket into space can cost hundreds of millions of dollars. Some people ask whether this money should instead be spent solving problems on Earth, such as poverty and climate change.",
+    "[8] Despite the cost, most scientists believe space exploration is worth it. It helps us understand the universe and our place in it. It pushes the limits of human knowledge and technology. And it inspires young people all over the world to study science and engineering.",
+    "[9] The future of space exploration is exciting. Private companies are now building their own rockets and planning trips to the Moon and Mars. One day, space travel might be as normal as flying on an aeroplane. The universe is waiting to be explored – and perhaps you will be the next explorer!"
+  ],
+  vocab:[
+    {w:"exploration",ar:"استكشاف",def:"The activity of travelling to new places to learn about them.",ex:"Space exploration helps us learn about the universe and other planets."},
+    {w:"satellite",ar:"قمر صناعي",def:"A machine sent into space that travels around a planet.",ex:"A weather satellite orbits Earth and sends data to scientists."},
+    {w:"astronaut",ar:"رائد فضاء",def:"A person trained to travel and work in space.",ex:"Neil Armstrong was the first astronaut to walk on the Moon."},
+    {w:"gravity",ar:"الجاذبية",def:"The force that pulls objects toward the Earth.",ex:"Astronauts learn to live without gravity when they are in space."},
+    {w:"orbit",ar:"يدور حول",def:"To travel in a circle around a planet or star.",ex:"The ISS orbits Earth and scientists live and work inside it."},
+    {w:"rover",ar:"مركبة استكشافية",def:"A robotic vehicle used to explore the surface of a planet.",ex:"Rovers have explored the surface of Mars and sent back photos."},
+    {w:"laboratory",ar:"مختبر",def:"A room or building where scientists do experiments.",ex:"The ISS is a large laboratory where scientists work in space."},
+    {w:"inspire",ar:"يُلهم",def:"To make someone feel excited and motivated to do something.",ex:"Space exploration inspires young people to study science."}
+  ],
+  vq:[
+    {s:"Neil Armstrong was a famous _______ who walked on the Moon in 1969.",a:"astronaut",o:["satellite","astronaut","rover","laboratory"]},
+    {s:"A weather _______ orbits Earth and sends data back to scientists.",a:"satellite",o:["astronaut","rover","satellite","laboratory"]},
+    {s:"The force of _______ keeps us on the ground and stops us from floating.",a:"gravity",o:["orbit","exploration","gravity","atmosphere"]},
+    {s:"Scientists do experiments in a _______ to learn more about space and science.",a:"laboratory",o:["rover","satellite","orbit","laboratory"]},
+    {s:"A _______ is a robotic vehicle that scientists use to explore the surface of Mars.",a:"rover",o:["laboratory","satellite","rover","spacecraft"]},
+    {s:"Space exploration _______ young people to study science and dream of the future.",a:"inspires",o:["orbits","inspires","explores","launches"]}
+  ],
+  cq:[
+    {t:"Skimming",q:"What is the main topic of this reading?",o:["How rockets are built","Life on other planets","Space exploration and its importance","The history of satellites only"],a:2},
+    {t:"Scanning",q:"According to paragraph [2], when did Neil Armstrong walk on the Moon?",o:["1957","1965","1972","1969"],a:3},
+    {t:"Referencing",q:"In paragraph [4], 'Scientists from many different countries work there together.' Where does 'there' refer to?",o:["A rocket factory","The Moon","Mars","The International Space Station"],a:3},
+    {t:"Scanning",q:"According to paragraph [5], which technology was developed because of space research?",o:["Televisions","Washing machines","GPS systems","Aeroplanes"],a:2},
+    {t:"Inferencing",q:"Why might some people think space money should be spent on Earth instead?",o:["Space is too far away","Astronauts earn too much money","There are serious problems like poverty and climate change on Earth","Space is not interesting"],a:2},
+    {t:"Referencing",q:"In paragraph [6], what is Mars called?",o:["The largest planet","The nearest planet to Earth","The coldest planet","The Red Planet"],a:3},
+    {t:"Scanning",q:"According to paragraph [2], what was the first satellite launched into space called?",o:["Apollo","Discovery","Sputnik","Rover"],a:2},
+    {t:"Inferencing",q:"What can we understand about the future of space travel from paragraph [9]?",o:["It will become much more expensive","Only governments will travel to space","Space travel may become normal for everyday people","The Moon is no longer interesting"],a:2},
+    {t:"Comprehension",q:"According to paragraph [3], what must astronauts learn before going to space?",o:["How to cook, read maps, and drive rovers","How to build rockets and satellites","How to live without gravity, fix equipment, and stay healthy","How to communicate in different languages"],a:2},
+    {t:"Comprehension",q:"According to paragraph [8], why do most scientists think space exploration is worth its cost?",o:["It makes countries famous","It creates new jobs and money","It is cheaper than solving Earth's problems","It helps us understand the universe and inspires young people"],a:3}
+  ]
+}
+];
+
+// ===== STATE =====
+let sName='';
+let st=R.map(()=>({stage:1,vs:new Array(6).fill(-1),va:false,vscore:0,cs:new Array(10).fill(-1),ca:false,cscore:0,done:false}));
+let cur=0;
+
+function startApp(){
+  const n=document.getElementById('nm').value.trim();
+  if(!n){alert('Please enter your name first! 😊');return;}
+  sName=n;
+  document.getElementById('welcome').hidden=true;
+  document.getElementById('app').hidden=false;
+  document.getElementById('nmD').textContent='👤 '+n;
+  buildBadgeBar();buildTabs();buildPanels();showTab(0);
+}
+
+function buildBadgeBar(){
+  const bar=document.getElementById('badgebar');
+  bar.innerHTML=`<span class="blabel">🏅 Your Badges:</span>`+
+    BADGES.map((b,i)=>`
+      <div class="badge-slot">
+        <div class="badge-icon${st[i].done?' earned':''}" id="bdg${i}" title="${b.name}">${b.emoji}</div>
+        <div class="badge-name${st[i].done?' earned':''}" id="bdgn${i}">${b.name}</div>
+      </div>`).join('')+
+    `<span class="cert-hint" id="certHint">${countDone()}/5 badges earned – collect all 5 to unlock your certificate!</span>`;
+}
+
+function countDone(){return st.filter(s=>s.done).length;}
+
+function refreshBadgeBar(){
+  BADGES.forEach((_,i)=>{
+    const el=document.getElementById('bdg'+i);
+    const nl=document.getElementById('bdgn'+i);
+    if(el&&st[i].done){el.classList.add('earned');nl.classList.add('earned');}
+  });
+  const hint=document.getElementById('certHint');
+  if(hint){
+    const n=countDone();
+    hint.textContent=n===5?'🎉 All 5 badges earned!':n+'/5 badges earned – collect all 5 to unlock your certificate!';
+  }
+}
+
+function buildTabs(){
+  document.getElementById('tabbar').innerHTML=R.map((r,i)=>
+    `<div class="tab${i===0?' active':' locked'}" id="t${i}" onclick="tryTab(${i})">${r.emoji} ${r.title}</div>`
+  ).join('');
+  R.forEach((_,i)=>refreshTab(i));
+}
+
+function refreshTab(i){
+  const el=document.getElementById('t'+i);if(!el)return;
+  const s=st[i],unlocked=i===0||st[i-1].done;
+  el.className='tab'+(i===cur?' active':'')+(s.done?' done':'')+(!unlocked&&i!==cur?' locked':'');
+  el.innerHTML=R[i].emoji+' '+R[i].title+(s.done?' ⭐':(unlocked?'':' 🔒'));
+}
+
+function tryTab(i){
+  if(i>0&&!st[i-1].done){alert('🔒 Complete "'+R[i-1].title+'" first!');return;}
+  showTab(i);
+}
+
+function showTab(i){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p'+i).classList.add('on');
+  cur=i;R.forEach((_,j)=>refreshTab(j));
+}
+
+function buildPanels(){
+  document.getElementById('panels').innerHTML=R.map((r,i)=>`<div class="panel" id="p${i}"><div id="c${i}"></div></div>`).join('');
+  R.forEach((_,i)=>render(i));
+}
+
+function render(i){
+  const s=st[i];
+  const el=document.getElementById('c'+i);
+  if(s.done){el.innerHTML=donePage(i);return;}
+  if(s.stage===1)el.innerHTML=stage1(i);
+  else if(s.stage===2)el.innerHTML=stage2(i);
+  else el.innerHTML=stage3(i);
+}
+
+function passage(r){
+  return r.paras.map(p=>{
+    const m=p.match(/^(\[\d+\])\s*(.*)/s);
+    return m?`<p><span class="pn">${m[1]}</span> ${m[2]}</p>`:`<p>${p}</p>`;
+  }).join('');
+}
+
+// STAGE 1
+function stage1(i){
+  const r=R[i];
+  return `<div class="ptop"><span style="font-size:1.6em">${r.emoji}</span>
+    <div><div style="font-weight:800;color:var(--pur);font-size:1.1em">${r.title}</div>
+    <div style="font-size:.78em;color:#999">📖 Stage 1 of 3 – Read & Learn Vocabulary</div></div></div>
+  <div class="split">
+    <div><div class="slabel">📖 Reading Passage</div>
+    <div class="pbox">${passage(r)}</div></div>
+    <div><div class="abox">
+      <div class="slabel">📚 Vocabulary – Click each card to see its meaning</div>
+      <div class="vgrid">${r.vocab.map(v=>`
+        <div class="vc" onclick="this.classList.toggle('fl')">
+          <div class="fr">
+            <div class="wd">${v.w}</div>
+            <div class="ar">${v.ar}</div>
+            <div class="hint">👆 tap to see meaning</div>
+          </div>
+          <div class="bk">
+            <strong style="color:var(--pur)">${v.w}</strong><br>
+            <span style="color:var(--pink);font-size:.88em">${v.ar}</span><br><br>
+            <span>${v.def}</span><br><br>
+            <span style="color:#888;font-size:.92em">📝 <em>${v.ex}</em></span>
+          </div>
+        </div>`).join('')}</div>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn btn-main" onclick="go2(${i})">I'm ready! Start Vocabulary Practice →</button>
+      </div>
+    </div></div>
+  </div>`;
+}
+
+function go2(i){st[i].stage=2;render(i);}
+
+// STAGE 2
+function stage2(i){
+  const r=R[i],s=st[i],done=s.va;
+  const pct=done?Math.round(s.vscore/r.vq.length*100):0;
+  const pass=pct>=80;
+  const qs=r.vq.map((q,j)=>{
+    const sel=s.vs[j];
+    return `<div class="qb">
+      <div class="qt comp">Vocabulary Practice</div>
+      <div class="qtxt">Fill in the blank: <em>${q.s.replace('_______','<strong style="color:var(--pink)">_______</strong>')}</em></div>
+      <div class="opts">${q.o.map((op,k)=>{
+        let c='opt';
+        if(done&&pass){if(op===q.a)c+=' cor';else if(k===sel)c+=' wrg';}
+        else if(k===sel)c+=' sel';
+        return `<button class="${c}" ${done?'disabled':''} onclick="pickV(${i},${j},${k})">${op}</button>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+  let sc='';
+  if(done){
+    sc=`<div class="sbox ${pass?'pass':'fail'}">
+      <div class="snum">${s.vscore}/${r.vq.length}</div>
+      <div style="font-weight:700;margin:6px 0">${pct}% – ${pass?'🎉 Great work! Ready for Comprehension!':'💪 Nearly there! You need 80% to move on.'}</div>
+      ${pass?`<button class="btn btn-ok" onclick="go3(${i})">Start Comprehension →</button>`
+             :`<button class="btn btn-retry" onclick="retryV(${i})">Try Again 🔄</button>`}
+    </div>`;
+  }
+  return `<div class="ptop"><span style="font-size:1.6em">${r.emoji}</span>
+    <div><div style="font-weight:800;color:var(--pur);font-size:1.1em">${r.title}</div>
+    <div style="font-size:.78em;color:#999">✏️ Stage 2 of 3 – Vocabulary Practice (need 80% to pass)</div></div>
+    <button class="btn btn-main" style="margin-left:auto;padding:8px 14px;font-size:.8em" onclick="st[${i}].stage=1;render(${i})">← Back to Reading</button></div>
+  <div class="split">
+    <div><div class="slabel">📖 Read again if needed</div>
+    <div class="pbox">${passage(r)}</div></div>
+    <div><div class="abox">
+      <div class="slabel">✏️ Vocabulary Practice – Choose the correct word</div>
+      <div class="prog"><div class="pfill" style="width:${done?Math.round(s.vscore/r.vq.length*100):0}%"></div></div>
+      ${qs}
+      ${!done?`<div style="text-align:center;margin-top:10px">
+        <button class="btn btn-main" onclick="submitV(${i})">Check My Answers ✅</button>
+      </div>`:''}
+      ${sc}
+    </div></div>
+  </div>`;
+}
+
+function pickV(i,j,k){if(st[i].va)return;st[i].vs[j]=k;render(i);}
+function submitV(i){
+  const s=st[i],r=R[i];
+  if(s.vs.includes(-1)){alert('Please answer all questions first! 😊');return;}
+  s.vscore=r.vq.reduce((n,q,j)=>n+(s.vs[j]!=-1&&r.vq[j].o[s.vs[j]]===q.a?1:0),0);
+  s.va=true;render(i);
+}
+function retryV(i){st[i].va=false;st[i].vs=new Array(R[i].vq.length).fill(-1);render(i);}
+function go3(i){st[i].stage=3;render(i);}
+
+// STAGE 3
+const TC={Skimming:"skim",Scanning:"scan",Referencing:"ref",Inferencing:"inf",Comprehension:"comp"};
+function stage3(i){
+  const r=R[i],s=st[i],done=s.ca;
+  const pct=done?Math.round(s.cscore/r.cq.length*100):0;
+  const pass=pct>=80;
+  const qs=r.cq.map((q,j)=>{
+    const sel=s.cs[j];
+    return `<div class="qb">
+      <div class="qt ${TC[q.t]||'comp'}">${q.t}</div>
+      <div class="qtxt">Q${j+1}. ${q.q}</div>
+      <div class="opts">${q.o.map((op,k)=>{
+        let c='opt';
+        if(done&&pass){if(k===q.a)c+=' cor';else if(k===sel)c+=' wrg';}
+        else if(k===sel)c+=' sel';
+        return `<button class="${c}" ${done?'disabled':''} onclick="pickC(${i},${j},${k})">${String.fromCharCode(65+k)}. ${op}</button>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+  let sc='';
+  if(done){
+    sc=`<div class="sbox ${pass?'pass':'fail'}">
+      <div class="snum">${s.cscore}/${r.cq.length}</div>
+      <div style="font-weight:700;margin:6px 0">${pct}% – ${pass?'🌟 Excellent! You earned a badge!':'💪 Good effort! You need 80% to pass. Read again and try!'}</div>
+      ${pass?`<button class="btn btn-ok" onclick="complete(${i})">Collect My Badge! ${BADGES[i].emoji}</button>`
+             :`<button class="btn btn-retry" onclick="retryC(${i})">Try Again 🔄</button>`}
+    </div>`;
+  }
+  return `<div class="ptop"><span style="font-size:1.6em">${r.emoji}</span>
+    <div><div style="font-weight:800;color:var(--pur);font-size:1.1em">${r.title}</div>
+    <div style="font-size:.78em;color:#999">🧠 Stage 3 of 3 – Comprehension Questions (need 80% to pass)</div></div>
+    <button class="btn btn-main" style="margin-left:auto;padding:8px 14px;font-size:.8em" onclick="st[${i}].stage=2;render(${i})">← Back to Vocab</button></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;font-size:.72em">
+    ${Object.entries(TC).map(([k,v])=>`<span class="qt ${v}">${k}</span>`).join('')}
+    <span style="color:#888;align-self:center">← Question types</span>
+  </div>
+  <div class="split">
+    <div><div class="slabel">📖 Read carefully</div>
+    <div class="pbox">${passage(r)}</div></div>
+    <div><div class="abox">
+      <div class="slabel">🧠 Comprehension – Choose the best answer</div>
+      <div class="prog"><div class="pfill" style="width:${done?Math.round(s.cscore/r.cq.length*100):0}%"></div></div>
+      ${qs}
+      ${!done?`<div style="text-align:center;margin-top:10px">
+        <button class="btn btn-main" onclick="submitC(${i})">Check My Answers ✅</button>
+      </div>`:''}
+      ${sc}
+    </div></div>
+  </div>`;
+}
+
+function pickC(i,j,k){if(st[i].ca)return;st[i].cs[j]=k;render(i);}
+function submitC(i){
+  const s=st[i],r=R[i];
+  if(s.cs.includes(-1)){alert('Please answer all questions first! 😊');return;}
+  s.cscore=r.cq.reduce((n,q,j)=>n+(s.cs[j]===q.a?1:0),0);
+  s.ca=true;render(i);
+}
+function retryC(i){st[i].ca=false;st[i].cs=new Array(R[i].cq.length).fill(-1);render(i);}
+
+function complete(i){
+  st[i].done=true;
+  refreshBadgeBar();
+  R.forEach((_,j)=>refreshTab(j));
+  render(i);
+  // move to next reading after short delay
+  if(i<4){setTimeout(()=>showTab(i+1),800);}
+}
+
+function donePage(i){
+  const r=R[i],b=BADGES[i];
+  const allDone=st.every(s=>s.done);
+  return `<div class="done-page">
+    <div class="badge-big">${b.emoji}</div>
+    <h2 style="color:var(--pur);margin:10px 0">${b.name} Badge Earned!</h2>
+    <p style="color:#666;margin-bottom:6px">Congratulations, <strong>${sName}</strong>! You completed <em>${r.title}</em>.</p>
+    <p style="color:#999;font-size:.85em;margin-bottom:20px">${countDone()} of 5 badges collected</p>
+    ${allDone?`
+    <div class="all-done-bar">
+      <div style="font-size:2em;margin-bottom:8px">${BADGES.map(b=>b.emoji).join(' ')}</div>
+      <p style="font-weight:800;color:var(--pur);font-size:1.15em">🎉 Amazing! You've collected ALL 5 badges, ${sName}!</p>
+      <p style="color:#888;font-size:.9em;margin:8px 0 16px">You are a true Super Reader. Your certificate is ready!</p>
+      <button class="btn btn-gold" onclick="showCert()">🏆 Claim Your Certificate!</button>
+    </div>`
+    :`<button class="btn btn-main" onclick="showTab(${i+1})">Next Reading: ${R[i+1].emoji} ${R[i+1].title} →</button>`}
+  </div>`;
+}
+
+function saveProgress(){
+  const data={name:sName,state:st,tab:cur};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=sName.replace(/\s+/g,'_')+'_ReadingHub_progress.json';
+  a.click();
+  showSaveMsg('✅ Saved!');
+}
+
+function loadProgress(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.name||!data.state){throw new Error('Invalid file');}
+      sName=data.name;st=data.state;cur=data.tab||0;
+      document.getElementById('welcome').hidden=true;
+      document.getElementById('app').hidden=false;
+      document.getElementById('nmD').textContent='👤 '+sName;
+      buildBadgeBar();buildTabs();buildPanels();showTab(cur);
+      showSaveMsg('✅ Progress loaded for '+sName+'!');
+    }catch(err){
+      showSaveMsg('❌ Could not load file. Please use a valid progress file.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function showSaveMsg(msg){
+  const el=document.getElementById('saveMsg');
+  if(!el)return;
+  el.textContent=msg;
+  setTimeout(()=>el.textContent='',3500);
+}
+
+function showCert(){
+  document.getElementById('app').hidden=true;
+  document.getElementById('cert').hidden=false;
+  document.getElementById('cname').textContent=sName;
+  document.getElementById('certBadges').textContent=BADGES.map(b=>b.emoji).join(' ');
+  document.getElementById('cdate').textContent='Date: '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+}
+</script>
+
+<footer>GED 100 – Develop English Language Skills | Higher Colleges of Technology | Designed by: Nazila Motahari</footer>
+</body>
+</html>
